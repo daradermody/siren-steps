@@ -15,13 +15,20 @@ const LOGGED_IN_ROUTES: Record<string, RequestHandler> = {
 }
 
 const ADMIN_ROUTES: Record<string, RequestHandler> = {
-  'POST /addUser': async (req, context) => {
+  'POST /addUser': async (req) => {
     const {name, team} = await req.json()
     if (!name || !team) {
       return new Response('Both name and team are required', {status: 400})
     }
     const token = await UserData.addUser(name, team)
     return new Response(`http://localhost:3000?token=${token}`)
+  },
+  'POST /editUser': async (req) => {
+    const {previousName, name, team} = await req.json()
+    if (!previousName || (!name && !team)) {
+      return new Response('previousName is required with either name or team', {status: 400})
+    }
+    await UserData.editUser(previousName, name, team)
   }
 }
 

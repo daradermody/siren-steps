@@ -38,11 +38,16 @@ export default class UserData {
     return this.users
   }
 
-  static async submitSteps(name: string, steps: number) {
-    const user = (await this.getAll()).find(user => user.name === name)
+  private static async getUserByName(name: string): Promise<StoredUser> {
+    const user = (await this.getAllWithToken()).find(user => user.name === name)
     if (!user) {
       throw new Error(`User not found with name "${name}"`)
     }
+    return user
+  }
+
+  static async submitSteps(name: string, steps: number) {
+    const user = await this.getUserByName(name)
     user.steps = [{date: new Date().toISOString(), steps}, ...user.steps]
     user.totalSteps = sum(user.steps.map(stepSub => stepSub.steps))
     await this.updateUser(user)
@@ -65,13 +70,19 @@ export default class UserData {
 
   static async addUser(name: string, team: string): Promise<string> {
     if (this.users.find(user => user.name === name)) {
-      console.log('name exists')
       throw new Response('User with name already exists', {status: 400})
     }
     const newUser: StoredUser = { name, team, token: crypto.randomUUID(), steps: [], totalSteps: 0, isAdmin: false }
     this.users.push(newUser)
     await this.saveUsers()
     return newUser.token
+  }
+
+  static async editUser(previousName: string, name?: string, team?: string): Promise<void> {
+    const user = await this.getUserByName(previousName)
+    user.name = name || user.name
+    user.team = team || user.team
+    await this.updateUser(user)
   }
 
   private static async saveUsers() {

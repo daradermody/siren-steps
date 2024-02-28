@@ -56,12 +56,31 @@ function useAddUser() {
   return {addUser, magicLink, loading, error}
 }
 
+function useEditUser(name: string) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error>()
+
+  const editUser = useCallback(async (newName?: string, newTeam?: string) => {
+    try {
+      setLoading(true)
+      await api.post('/editUser', {previousName: name, name: newName, team: newTeam})
+    } catch (e) {
+      setError(e as Error)
+      throw e
+    } finally {
+      setLoading(false)
+    }
+  }, [name, setLoading, setError])
+
+  return {editUser, loading, error}
+}
+
 export function Admin() {
   const user = useUser()
   const {users, loading, error, refetch} = useUsers()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
 
-  console.log('user', user)
   if (!user) {
     return <Navigate to="/" replace={true}/>
   }
@@ -76,12 +95,28 @@ export function Admin() {
         items={users?.sort((a, b) => b.name < a.name ? 1 : -1) || []}
         columns={[
           {field: 'name', name: 'Name', sortable: true},
+          {field: 'team', name: 'Team', sortable: true},
           {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
+          {actions: [
+            {name: 'Edit', description: 'Edit this user', icon: 'pencil', type: 'icon', onClick: setUserToEdit}
+          ]},
         ]}
+        sorting={{sort: {field: 'name', direction: 'asc' as const}}}
       />
       <EuiSpacer size="xl"/>
       <EuiButton onClick={() => setShowAddUserModal(true)}>Add user</EuiButton>
+
       {showAddUserModal && <AddUserModal onClose={() => setShowAddUserModal(false)} onAdd={refetch}/>}
+      {userToEdit && (
+        <EditUserModal
+          user={userToEdit}
+          onClose={() => setUserToEdit(undefined)}
+          onEdit={() => {
+            refetch()
+            setUserToEdit(undefined)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -123,8 +158,47 @@ function AddUserModal({onClose, onAdd}: { onClose: () => void, onAdd: () => void
       </EuiModalBody>
 
       <EuiModalFooter>
-        <EuiButton disabled={loading} onClick={onClose}>Close</EuiButton>
+        <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
         <EuiButton disabled={loading || !name || !team} onClick={handleAddUser} fill>Save</EuiButton>
+      </EuiModalFooter>
+    </EuiModal>
+  )
+}
+
+function EditUserModal({user, onClose, onEdit}: { user: User; onClose: () => void, onEdit: () => void }) {
+  const {editUser, loading, error} = useEditUser(user.name)
+  const [newName, setNewName] = useState(user.name)
+  const [newTeam, setNewTeam] = useState(user.team)
+
+  async function handleEditUser() {
+    await editUser(newName, newTeam)
+    onEdit()
+  }
+
+  useEffect(() => {
+    if (error) console.error(error)
+  }, [error])
+
+  const detailsChanged = user.name !== newName || user.team !== newTeam
+
+  return (
+    <EuiModal onClose={onClose}>
+      <EuiModalHeader>
+        <EuiModalHeaderTitle>Edit user</EuiModalHeaderTitle>
+      </EuiModalHeader>
+
+      <EuiModalBody>
+        <EuiFormRow label="Name">
+          <EuiFieldText value={newName} onChange={e => setNewName(e.target.value)}/>
+        </EuiFormRow>
+        <EuiFormRow label="Team">
+          <EuiFieldText value={newTeam} onChange={e => setNewTeam(e.target.value)}/>
+        </EuiFormRow>
+      </EuiModalBody>
+
+      <EuiModalFooter>
+        <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
+        <EuiButton disabled={loading || !newName || !newTeam || !detailsChanged} onClick={handleEditUser} fill>Save</EuiButton>
       </EuiModalFooter>
     </EuiModal>
   )
