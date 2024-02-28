@@ -14,7 +14,7 @@ import {
   EuiSpacer,
   EuiText
 } from '@elastic/eui'
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import api from './api.ts'
 import type { User } from '../server/user_data.ts'
 
@@ -75,11 +75,31 @@ function useEditUser(name: string) {
   return {editUser, loading, error}
 }
 
+function useDeleteUser() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error>()
+
+  const deleteUser = useCallback(async (name: string) => {
+    try {
+      setLoading(true)
+      await api.post('/deleteUser', {name})
+    } catch (e) {
+      setError(e as Error)
+      throw e
+    } finally {
+      setLoading(false)
+    }
+  }, [setLoading, setError])
+
+  return {deleteUser, loading, error}
+}
+
 export function Admin() {
   const user = useUser()
   const {users, loading, error, refetch} = useUsers()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
+  const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
 
   if (!user) {
     return <Navigate to="/" replace={true}/>
@@ -98,7 +118,8 @@ export function Admin() {
           {field: 'team', name: 'Team', sortable: true},
           {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
           {actions: [
-            {name: 'Edit', description: 'Edit this user', icon: 'pencil', type: 'icon', onClick: setUserToEdit}
+            {name: 'Edit', description: 'Edit this user', icon: 'pencil', type: 'icon', onClick: setUserToEdit},
+            {name: 'Delete', description: 'Delete this user', icon: 'trash', type: 'icon', color: 'danger', onClick: setUserToDelete}
           ]},
         ]}
         sorting={{sort: {field: 'name', direction: 'asc' as const}}}
@@ -114,6 +135,16 @@ export function Admin() {
           onEdit={() => {
             refetch()
             setUserToEdit(undefined)
+          }}
+        />
+      )}
+      {userToDelete && (
+        <DeleteUserModal
+          user={userToDelete}
+          onClose={() => setUserToDelete(undefined)}
+          onDelete={() => {
+            refetch()
+            setUserToDelete(undefined)
           }}
         />
       )}
@@ -199,6 +230,38 @@ function EditUserModal({user, onClose, onEdit}: { user: User; onClose: () => voi
       <EuiModalFooter>
         <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
         <EuiButton disabled={loading || !newName || !newTeam || !detailsChanged} onClick={handleEditUser} fill>Save</EuiButton>
+      </EuiModalFooter>
+    </EuiModal>
+  )
+}
+
+function DeleteUserModal({user, onClose, onDelete}: { user: User; onClose: () => void, onDelete: () => void }) {
+  const {deleteUser, loading, error} = useDeleteUser()
+
+  async function handleDeleteUser() {
+    await deleteUser(user.name)
+    onDelete()
+  }
+
+  useEffect(() => {
+    if (error) console.error(error)
+  }, [error])
+
+  return (
+    <EuiModal onClose={onClose}>
+      <EuiModalHeader>
+        <EuiModalHeaderTitle>Delete user</EuiModalHeaderTitle>
+      </EuiModalHeader>
+
+      <EuiModalBody>
+        <EuiText>
+          <p>Are you sure you want to delete user "{user.name}" on team "{user.team}"?</p>
+        </EuiText>
+      </EuiModalBody>
+
+      <EuiModalFooter>
+        <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
+        <EuiButton disabled={loading} onClick={handleDeleteUser} fill color="danger">Delete</EuiButton>
       </EuiModalFooter>
     </EuiModal>
   )

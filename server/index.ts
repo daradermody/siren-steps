@@ -30,8 +30,8 @@ function startServer() {
       if (e instanceof Response) {
         return e
       } else {
+        return new Response(e.message, {status: 500})
         console.error(e)
-        throw e
       }
     }
   } as ServeOptions);

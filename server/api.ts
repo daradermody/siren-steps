@@ -29,6 +29,13 @@ const ADMIN_ROUTES: Record<string, RequestHandler> = {
       return new Response('previousName is required with either name or team', {status: 400})
     }
     await UserData.editUser(previousName, name, team)
+  },
+  'POST /deleteUser': async (req) => {
+    const {name} = await req.json()
+    if (!name) {
+      return new Response('name is required', {status: 400})
+    }
+    await UserData.deleteUser(name)
   }
 }
 

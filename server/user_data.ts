@@ -85,6 +85,12 @@ export default class UserData {
     await this.updateUser(user)
   }
 
+  static async deleteUser(name: string): Promise<void> {
+    await this.getUserByName(name)
+    this.users = this.users.filter(user => user.name !== name)
+    await this.saveUsers()
+  }
+
   private static async saveUsers() {
     await Bun.write(this.file, JSON.stringify(this.users, null, 2))
   }
