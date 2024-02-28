@@ -1,4 +1,16 @@
-import { EuiButton, EuiFieldNumber, EuiInMemoryTable, EuiSpacer, EuiText, useIsWithinMaxBreakpoint } from '@elastic/eui'
+import {
+  EuiButton,
+  EuiFieldNumber,
+  EuiInMemoryTable,
+  EuiModal,
+  EuiModalBody,
+  EuiModalFooter,
+  EuiModalHeader,
+  EuiModalHeaderTitle,
+  EuiSpacer,
+  EuiText,
+  useIsWithinMaxBreakpoint
+} from '@elastic/eui'
 import React, { useCallback, useEffect, useState } from 'react'
 import type { StepSubmission } from '../server/user_data.ts'
 import api from './api.ts'
@@ -50,7 +62,7 @@ export default function SubmitSteps() {
         }}
       />
       <EuiSpacer size="xl"/>
-      <PastSubmissions submissions={steps} loading={loading}/>
+      <PastSubmissions submissions={steps} loading={loading} onDelete={refetch}/>
     </>
   )
 }
@@ -80,7 +92,9 @@ function StepSubmissionForm({onSubmit, loading}: {onSubmit: (steps: number) => v
   )
 }
 
-function PastSubmissions({submissions, loading}: {submissions?: StepSubmission[], loading?: boolean}) {
+function PastSubmissions({submissions, loading, onDelete}: {submissions?: StepSubmission[], loading?: boolean, onDelete: () => void}) {
+  const [entryToDelete, setEntryToDelete] = useState<StepSubmission | undefined>(undefined);
+
   return (
     <>
       <EuiText><h2>Previous submissions</h2></EuiText>
@@ -89,10 +103,66 @@ function PastSubmissions({submissions, loading}: {submissions?: StepSubmission[]
         loading={loading}
         columns={[
           {field: 'date', name: 'Date', render: (date: string) => new Date(date).toLocaleString()},
-          {field: 'steps', name: 'Steps', render: (steps: number) => steps.toLocaleString()}
+          {field: 'steps', name: 'Steps', render: (steps: number) => steps.toLocaleString()},
+          {actions: [{
+            name: 'Delete',
+            description: 'Delete step submission from this time',
+            icon: 'trash',
+            color: 'danger',
+            type: 'icon',
+            onClick: setEntryToDelete
+          }]},
         ]}
         sorting={{sort: {field: 'steps', direction: 'desc' as const}}}
       />
+
+      {entryToDelete && (
+        <DeleteStepModal
+          entry={entryToDelete}
+          onDelete={() => {
+            onDelete()
+            setEntryToDelete(undefined)
+          }}
+          onClose={() => setEntryToDelete(undefined)}
+        />
+      )}
     </>
+  )
+}
+
+function DeleteStepModal({entry, onDelete, onClose}: {entry: StepSubmission; onClose: () => void; onDelete: () => void}) {
+  const [deleting, setDeleting] = useState(false)
+
+  async function deleteSubmission() {
+    setDeleting(true)
+    try {
+      await api.post('/mySteps/_delete', { date: entry.date })
+      onDelete()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <EuiModal onClose={onClose}>
+      <EuiModalHeader>
+        <EuiModalHeaderTitle>Delete steps</EuiModalHeaderTitle>
+      </EuiModalHeader>
+
+      <EuiModalBody>
+        <EuiText>
+          <p>
+            Are you sure you want to delete the {entry.steps} steps you walked on {new Date(entry.date).toLocaleString()}?
+          </p>
+        </EuiText>
+      </EuiModalBody>
+
+      <EuiModalFooter>
+        <EuiButton disabled={deleting} onClick={onClose}>Cancel</EuiButton>
+        <EuiButton disabled={deleting} onClick={deleteSubmission} fill color="danger">Delete</EuiButton>
+      </EuiModalFooter>
+    </EuiModal>
   )
 }

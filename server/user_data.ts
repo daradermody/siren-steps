@@ -48,6 +48,16 @@ export default class UserData {
     await this.updateUser(user)
   }
 
+  static async deleteSteps(name: string, date: string) {
+    const user = (await this.getAll()).find(user => user.name === name)
+    if (!user) {
+      throw new Error(`User not found with name "${name}"`)
+    }
+    user.steps = user.steps.filter(submission => submission.date !== date)
+    user.totalSteps = sum(user.steps.map(stepSub => stepSub.steps))
+    await this.updateUser(user)
+  }
+
   private static async updateUser(user: User) {
     this.users = this.users.map(u => u.name === user.name ? {...u, ...user} : u)
     await this.saveUsers()

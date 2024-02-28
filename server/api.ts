@@ -9,22 +9,20 @@ const PUBLIC_API_ROUTES: Record<string, PublicRequestHandler> = {
 
 const LOGGED_IN_ROUTES: Record<string, RequestHandler> = {
   'GET /me': (_, context) => Response.json(context.user),
-  'GET /mySteps': async (_, context) => Response.json(context.user?.steps),
-  'POST /mySteps': async (req, context) => {
-    if (!context.user) return new Response('Must be logged in', {status: 401})
-    await UserData.submitSteps(context.user?.name, (await req.json()).steps)
-  },
+  'GET /mySteps': (_, context) => Response.json(context.user.steps),
+  'POST /mySteps': async (req, context) => UserData.submitSteps(context.user.name, (await req.json()).steps),
+  'POST /mySteps/_delete': async (req, context) => UserData.deleteSteps(context.user.name, (await req.json()).date),
+}
+
+const ADMIN_ROUTES: Record<string, RequestHandler> = {
   'POST /addUser': async (req, context) => {
-    if (!context.user?.isAdmin) {
-      return new Response('Must be admin', {status: 403})
-    }
     const {name, team} = await req.json()
     if (!name || !team) {
       return new Response('Both name and team are required', {status: 400})
     }
     const token = await UserData.addUser(name, team)
     return new Response(`http://localhost:3000?token=${token}`)
-  },
+  }
 }
 
 export default async function handleApiRequest(req: Request) {
@@ -35,6 +33,12 @@ export default async function handleApiRequest(req: Request) {
   } else if (LOGGED_IN_ROUTES[handlerKey]) {
     const context = await getLoggedInContext(req)
     return LOGGED_IN_ROUTES[handlerKey](req, context)
+  } else if (ADMIN_ROUTES[handlerKey]) {
+    const context = await getLoggedInContext(req)
+    if (!context.user.isAdmin) {
+      return new Response('Must be admin', {status: 403})
+    }
+    return ADMIN_ROUTES[handlerKey](req, context)
   } else {
     return new Response('Not found', {status: 404})
   }
@@ -66,7 +70,7 @@ async function getTeamStats(): Promise<TeamStat[]> {
 }
 
 interface Context {
-  user?: User
+  user: User
 }
 
 export interface TeamStat {
