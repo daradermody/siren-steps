@@ -9,12 +9,13 @@ async function main() {
   startServer()
   console.log(`Server available at http://localhost:${port}/`)
 
-  const watcher = watch('client', debounce(buildClient, 20));
-
-  process.on("SIGINT", () => {
-    watcher.close();
-    process.exit(0);
-  });
+  if (Bun.env.NODE_ENV !== 'production') {
+    const watcher = watch('client', debounce(buildClient, 20));
+    process.on("SIGINT", () => {
+      watcher.close();
+      process.exit(0);
+    });
+  }
 }
 
 function startServer() {
@@ -38,21 +39,31 @@ function startServer() {
 
 async function handleUiRoute(path: string) {
   if (await Bun.file(`build/${path}`).exists()) {
-    return new Response(Bun.file(`build/${path}`));
+    return serveFile(`build/${path}`)
   } else if (await Bun.file(`build/static/${path}`).exists()) {
-    return new Response(Bun.file(`build/static/${path}`));
+    return serveFile(`build/static/${path}`)
   } else {
-    return new Response(Bun.file(`build/public/index.html`))
+    return serveFile(`build/public/index.html`)
+  }
+}
+async function serveFile(path: string, compress = true) {
+  if (compress) {
+    const file = Bun.file(path)
+    const content = Bun.gzipSync(await file.arrayBuffer())
+    return new Response(content, { headers: { 'Content-Type': file.type, 'Content-Encoding': 'gzip' } })
+  } else {
+    return new Response(Bun.file(path))
   }
 }
 
 async function buildClient() {
+  await fixEuiSideEffects()
+
   await $`mkdir -p build`
   const result = await build({
     entrypoints: ['./client/index.tsx'],
     outdir: './build/static',
-    // minify: Bun.env.NODE_ENV === 'production',
-    // splitting: Bun.env.NODE_ENV === 'production',
+    minify: Bun.env.NODE_ENV === 'production',
   });
   if (!result.success) {
     console.error('There were errors during the client build:')
@@ -62,6 +73,14 @@ async function buildClient() {
   }
   await $`cp -r client/public build/`
   console.log('Rebuilt')
+}
+
+async function fixEuiSideEffects() {
+  const euiPkg = Bun.file(`${import.meta.dir}/../node_modules/@elastic/eui/package.json`)
+  await Bun.write(euiPkg, JSON.stringify({
+    ...await euiPkg.json(),
+    sideEffects: false
+  }, null, 2))
 }
 
 function debounce(fn: (...params: any[]) => void, wait: number) {

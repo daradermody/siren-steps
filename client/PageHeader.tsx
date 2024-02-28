@@ -16,7 +16,7 @@ export default function PageHeader() {
       <EuiPageHeaderSection style={{ width: '100%'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isNarrow ? 'column' : 'row'}}>
           <Link to="/" style={{display: 'flex', gap: '10px', alignItems: 'center', margin: '26px 0', width: 'fit-content'}}>
-            <img src={logo} alt="logo" style={{height: '60px'}}/>
+            <img src={logo} alt="logo" style={{height: '60px', width: '60px'}}/>
             <EuiTitle size="l"><h1>Siren Steps</h1></EuiTitle>
           </Link>
           <div style={{display: location.pathname === '/' ? 'block' : 'none', width: isNarrow ? '100%' : 'unset'}}>
