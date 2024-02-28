@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "bun run --hot ./server/index.ts",
-    "docker:start": "bun docker:build && docker container rm siren-steps && docker run --name=siren-steps --env-file .env --mount source=siren-steps-volume,target=/data -p 3000:3000 daradermody/siren-steps",
+    "docker:start": "bun docker:build && docker container rm siren-steps; docker run --name=siren-steps --env-file .env --mount source=siren-steps-volume,target=/data -p 3000:3000 daradermody/siren-steps",
     "docker:build": "docker build --pull -t daradermody/siren-steps .",
     "docker:publish": "./scripts/publish_docker.sh"
   },

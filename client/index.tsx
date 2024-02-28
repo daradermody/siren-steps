@@ -53,3 +53,11 @@ function NotFound() {
     </div>
   )
 }
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker
+      .register("/static/serviceWorker.js")
+      .catch(err => console.log("Service worker not registered", err))
+  })
+}

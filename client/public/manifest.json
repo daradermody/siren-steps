@@ -1,9 +1,9 @@
 {
   "short_name": "Siren Steps",
-  "name": "Track what team walks the most",
+  "name": "Siren Steps",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
@@ -18,8 +18,9 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0a0e2b",
+  "background_color": "#0a0e2b",
+  "orientation": "portrait-primary"
 }

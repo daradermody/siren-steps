@@ -61,7 +61,7 @@ async function buildClient() {
 
   await $`mkdir -p build`
   const result = await build({
-    entrypoints: ['./client/index.tsx'],
+    entrypoints: ['./client/index.tsx', './client/serviceWorker.ts'],
     outdir: './build/static',
     minify: Bun.env.NODE_ENV === 'production',
   });
