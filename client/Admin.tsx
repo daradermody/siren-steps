@@ -44,7 +44,7 @@ function useAddUser() {
     try {
       setLoading(true)
       const response = await api.post('/addUser', {name, team})
-      setMagicLink(response.data)
+      setMagicLink(`${window.location.protocol}//${window.location.host}?token=${response.data}`)
     } catch (e) {
       setError(e as Error)
       throw e

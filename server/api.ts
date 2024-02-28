@@ -21,7 +21,7 @@ const ADMIN_ROUTES: Record<string, RequestHandler> = {
       return new Response('Both name and team are required', {status: 400})
     }
     const token = await UserData.addUser(name, team)
-    return new Response(`http://localhost:3000?token=${token}`)
+    return new Response(token)
   },
   'POST /editUser': async (req) => {
     const {previousName, name, team} = await req.json()
