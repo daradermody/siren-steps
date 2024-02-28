@@ -6,6 +6,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 SHA=$(git rev-parse HEAD)
-bun docker-build
-docker tag daradermody/siren-steps:latest daradermody/siren-steps:${SHA}
-docker push daradermody/siren-steps:latest daradermody/siren-steps:${SHA}
+bun docker:build
+docker tag daradermody/siren-steps:latest daradermody/siren-steps:"${SHA}"
+docker push daradermody/siren-steps:latest
+docker push daradermody/siren-steps:"${SHA}"
