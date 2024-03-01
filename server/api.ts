@@ -15,6 +15,7 @@ const LOGGED_IN_ROUTES: Record<string, RequestHandler> = {
 }
 
 const ADMIN_ROUTES: Record<string, RequestHandler> = {
+  'GET /usersWithTokens': async () => Response.json(await UserData.getAllWithToken()),
   'POST /addUser': async (req) => {
     const {name, team} = await req.json()
     if (!name || !team) {
@@ -64,7 +65,7 @@ type RequestHandler = (req: Request, context: Context) => Response | void | Prom
 async function getLoggedInContext(req: Request): Promise<Context> {
   const token = new URL(req.url).searchParams.get('token') || req.headers.get('token')
   if (!token) {
-    throw new Response('Login token required (?token=abc)', {status: 401})
+    throw Response.json({error: 'Login token required (?token=abc)'}, {status: 401})
   } else if (UserData.isAdminToken(token)) {
     return {user: {name: 'Admin', team: 'N/A', steps: [], totalSteps: 0, isAdmin: true}}
   } else {

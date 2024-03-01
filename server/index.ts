@@ -10,7 +10,7 @@ async function main() {
   console.log(`Server available at http://localhost:${port}/`)
 
   if (Bun.env.NODE_ENV !== 'production') {
-    const watcher = watch('client', debounce(buildClient, 20));
+    const watcher = watch('client', {recursive: true}, debounce(buildClient, 20));
     process.on("SIGINT", () => {
       watcher.close();
       process.exit(0);

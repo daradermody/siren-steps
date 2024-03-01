@@ -1,6 +1,6 @@
 import { EuiButtonIcon, EuiDescriptionList, EuiInMemoryTable, EuiText } from '@elastic/eui'
 import React, { type ReactNode, useEffect, useState } from 'react'
-import api from './api.ts'
+import client from './api/client.ts'
 import type { TeamStat } from '../server/api.ts'
 import PageHeader from './PageHeader.tsx'
 
@@ -30,7 +30,7 @@ export default function Leaderboard() {
 
   return (
     <>
-      <PageHeader/>
+      <PageHeader navigation={['admin', 'takePart', 'submitSteps']}/>
       <EuiText><h2>Leaderboard</h2></EuiText>
       <EuiInMemoryTable
         loading={loading}
@@ -69,8 +69,8 @@ function useTeamStats() {
   const [error, setError] = useState<Error>()
 
   useEffect(() => {
-    api.get<string>('/teamStats')
-      .then(response => setStats(JSON.parse(response.data)))
+    client.get<TeamStat[]>('/teamStats')
+      .then(response => setStats(response.data))
       .catch(e => setError(e))
       .finally(() => setLoading(false))
   }, [])

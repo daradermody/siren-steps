@@ -14,89 +14,14 @@ import {
   EuiSpacer,
   EuiText
 } from '@elastic/eui'
-import React, { useCallback, useEffect, useState } from 'react'
-import api from './api.ts'
-import type { User } from '../server/user_data.ts'
-
-function useUsers() {
-  const [users, setUsers] = useState<User[]>()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error>()
-
-  const fetch = useCallback(() => {
-    api.get<string>('/users')
-      .then(response => setUsers(JSON.parse(response.data)))
-      .catch(e => setError(e))
-      .finally(() => setLoading(false))
-  }, [setUsers, setLoading, setError])
-
-  useEffect(fetch, [fetch])
-
-  return {users, loading, error, refetch: fetch}
-}
-
-function useAddUser() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error>()
-  const [magicLink, setMagicLink] = useState<string>()
-
-  const addUser = useCallback(async (name: string, team: string) => {
-    try {
-      setLoading(true)
-      const response = await api.post('/addUser', {name, team})
-      setMagicLink(`${window.location.protocol}//${window.location.host}?token=${response.data}`)
-    } catch (e) {
-      setError(e as Error)
-      throw e
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError])
-
-  return {addUser, magicLink, loading, error}
-}
-
-function useEditUser(name: string) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error>()
-
-  const editUser = useCallback(async (newName?: string, newTeam?: string) => {
-    try {
-      setLoading(true)
-      await api.post('/editUser', {previousName: name, name: newName, team: newTeam})
-    } catch (e) {
-      setError(e as Error)
-      throw e
-    } finally {
-      setLoading(false)
-    }
-  }, [name, setLoading, setError])
-
-  return {editUser, loading, error}
-}
-
-function useDeleteUser() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error>()
-
-  const deleteUser = useCallback(async (name: string) => {
-    try {
-      setLoading(true)
-      await api.post('/deleteUser', {name})
-    } catch (e) {
-      setError(e as Error)
-      throw e
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError])
-
-  return {deleteUser, loading, error}
-}
+import React, { useEffect, useState } from 'react'
+import type { User, UserWithToken } from '../server/user_data.ts'
+import { useAddUser, useUsers, useDeleteUser, useEditUser } from './api/api_hooks.ts'
+import PageHeader from './PageHeader.tsx'
 
 export function Admin() {
   const user = useUser()
-  const {users, loading, error, refetch} = useUsers()
+  const {users, loading, error, refetch} = useUsers<UserWithToken[]>()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
   const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
@@ -105,21 +30,48 @@ export function Admin() {
     return <Navigate to="/" replace={true}/>
   }
 
+  const baseLink = `${window.location.protocol}//${window.location.host}`;
+
   return (
     <div>
+      <PageHeader navigation={['submitSteps']}/>
+
       <EuiText><h2>Users</h2></EuiText>
       <EuiInMemoryTable
         itemId="name"
         loading={loading}
         error={error?.message}
         items={users?.sort((a, b) => b.name < a.name ? 1 : -1) || []}
+        hasActions
         columns={[
           {field: 'name', name: 'Name', sortable: true},
           {field: 'team', name: 'Team', sortable: true},
           {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
           {actions: [
-            {name: 'Edit', description: 'Edit this user', icon: 'pencil', type: 'icon', onClick: setUserToEdit},
-            {name: 'Delete', description: 'Delete this user', icon: 'trash', type: 'icon', color: 'danger', onClick: setUserToDelete}
+            {
+              name: 'Impersonate',
+              isPrimary: true,
+              description: 'Login as this user',
+              href: user => `${baseLink}?token=${user.token}`,
+              target: '_blank',
+              icon: 'play',
+              type: 'icon'
+            },
+            {
+              name: 'Edit',
+              description: 'Edit this user',
+              icon: 'pencil',
+              type: 'icon',
+              onClick: setUserToEdit
+            },
+            {
+              name: 'Delete',
+              description: 'Delete this user',
+              icon: 'trash',
+              type: 'icon',
+              color: 'danger',
+              onClick: setUserToDelete
+            }
           ]},
         ]}
         sorting={{sort: {field: 'name', direction: 'asc' as const}}}
@@ -189,7 +141,7 @@ function AddUserModal({onClose, onAdd}: { onClose: () => void, onAdd: () => void
       </EuiModalBody>
 
       <EuiModalFooter>
-        <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
+        <EuiButton disabled={loading} onClick={onClose}>{magicLink ? 'Close' : 'Cancel'}</EuiButton>
         <EuiButton disabled={loading || !name || !team} onClick={handleAddUser} fill>Save</EuiButton>
       </EuiModalFooter>
     </EuiModal>

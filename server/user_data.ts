@@ -12,7 +12,7 @@ export default class UserData {
     const users = await this.getAllWithToken()
     const user = users.find(user => user.token === token)
     if (!user) {
-      throw new Response('User not found for token', {status: 404})
+      throw Response.json({ error: 'User not found for token' }, {status: 404})
     }
     return stripPrivateAttributes(user)
   }
@@ -22,7 +22,7 @@ export default class UserData {
     return users.map(stripPrivateAttributes)
   }
 
-  private static async getAllWithToken(): Promise<StoredUser[]> {
+  static async getAllWithToken(): Promise<StoredUser[]> {
     if (!this.users) {
       if (await this.file.exists()) {
         const users: Omit<StoredUser, 'totalSteps'>[] = await this.file.json()
@@ -70,7 +70,7 @@ export default class UserData {
 
   static async addUser(name: string, team: string): Promise<string> {
     if (this.users.find(user => user.name === name)) {
-      throw new Response('User with name already exists', {status: 400})
+      throw Response.json({ error: 'User with name already exists' }, {status: 409})
     }
     const newUser: StoredUser = { name, team, token: crypto.randomUUID(), steps: [], totalSteps: 0, isAdmin: false }
     this.users.push(newUser)
@@ -80,6 +80,9 @@ export default class UserData {
 
   static async editUser(previousName: string, name?: string, team?: string): Promise<void> {
     const user = await this.getUserByName(previousName)
+    if (name !== previousName && this.users.find(user => user.name === name)) {
+      throw Response.json({ error: `New name "${name}" can't be used as a user with this name already exists` }, {status: 409})
+    }
     user.name = name || user.name
     user.team = team || user.team
     await this.updateUser(user)
@@ -105,8 +108,6 @@ function stripPrivateAttributes(user: StoredUser): User {
   return publicUserInfo
 }
 
-export type StoredUser = User & { token: string }
-
 export interface User {
   name: string;
   team: string;
@@ -114,6 +115,10 @@ export interface User {
   steps: StepSubmission[];
   isAdmin: boolean;
 }
+
+export type UserWithToken = User & { token: string }
+
+type StoredUser = UserWithToken
 
 export interface StepSubmission {
   date: string;

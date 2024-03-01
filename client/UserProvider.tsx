@@ -1,8 +1,8 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
-import api from './api.ts'
+import client from './api/client.ts'
 import type { User } from '../server/user_data.ts'
 
-const UserContext = createContext<Pick<User, 'name' | 'team'> | undefined>(undefined)
+const UserContext = createContext<Pick<User, 'name' | 'team' | 'isAdmin'> | undefined>(undefined)
 
 export default function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>()
@@ -11,13 +11,13 @@ export default function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token') || localStorage.getItem('token')
     if (token) {
-      api.interceptors.request.use(config => {
-        config.headers.token =  token;
+      client.interceptors.request.use(config => {
+        config.headers.token = token;
         return config;
       });
-      api.get<User>(`/me`)
+      client.get<User>(`/me`)
         .then(response => {
-          setUser(JSON.parse(response.data as any))
+          setUser(response.data)
           localStorage.setItem('token', token)
         })
         .catch(e => {
@@ -33,6 +33,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
   if (loading) {
     return null
   }
+
   return (
     <UserContext.Provider value={user}>
       {children}

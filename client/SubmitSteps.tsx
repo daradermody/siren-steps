@@ -13,7 +13,7 @@ import {
 } from '@elastic/eui'
 import React, { useCallback, useEffect, useState } from 'react'
 import type { StepSubmission } from '../server/user_data.ts'
-import api from './api.ts'
+import client from './api/client.ts'
 import PageHeader from './PageHeader.tsx'
 
 function useSteps() {
@@ -22,8 +22,8 @@ function useSteps() {
   const [error, setError] = useState()
 
   const fetch = useCallback(() => {
-    api.get<string>('/mySteps')
-      .then(response => setSteps(JSON.parse(response.data)))
+    client.get<StepSubmission[]>('/mySteps')
+      .then(response => setSteps(response.data))
       .catch(e => setError(e))
       .finally(() => setLoading(false))
   }, [setError, setLoading, setSteps])
@@ -39,7 +39,7 @@ function useSubmitSteps() {
 
   const submitSteps = useCallback(async (steps: number): Promise<void> => {
     setLoading(true)
-    await api.post('/mySteps', { steps })
+    await client.post('/mySteps', { steps })
       .catch(setError)
       .finally(() => setLoading(false))
   }, [setLoading])
@@ -53,7 +53,7 @@ export default function SubmitSteps() {
 
   return (
     <>
-      <PageHeader/>
+      <PageHeader navigation={['admin']}/>
       <StepSubmissionForm
         loading={loading || loadingSubmit}
         onSubmit={async steps => {
@@ -136,7 +136,7 @@ function DeleteStepModal({entry, onDelete, onClose}: {entry: StepSubmission; onC
   async function deleteSubmission() {
     setDeleting(true)
     try {
-      await api.post('/mySteps/_delete', { date: entry.date })
+      await client.post('/mySteps/_delete', { date: entry.date })
       onDelete()
     } catch (e) {
       console.error(e)
