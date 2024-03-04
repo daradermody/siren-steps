@@ -82,7 +82,7 @@ function StepSubmissionForm({onSubmit, loading}: {onSubmit: (steps: number) => v
       <div style={{display: 'flex', gap: '10px', flexDirection: isNarrow ? 'column' : 'row'}}>
         <EuiFieldNumber
           fullWidth={isNarrow}
-          placeholder="Steps taken today"
+          placeholder="Steps taken the last few days"
           value={steps}
           onChange={e => setSteps(e.target.value)}
         />
@@ -102,7 +102,7 @@ function PastSubmissions({submissions, loading, onDelete}: {submissions?: StepSu
         items={submissions || []}
         loading={loading}
         columns={[
-          {field: 'date', name: 'Date', render: (date: string) => new Date(date).toLocaleString()},
+          {field: 'date', name: 'Submission date', render: (date: string) => new Date(date).toLocaleString()},
           {field: 'steps', name: 'Steps', render: (steps: number) => steps.toLocaleString()},
           {actions: [{
             name: 'Delete',
@@ -113,7 +113,7 @@ function PastSubmissions({submissions, loading, onDelete}: {submissions?: StepSu
             onClick: setEntryToDelete
           }]},
         ]}
-        sorting={{sort: {field: 'steps', direction: 'desc' as const}}}
+        sorting={{sort: {field: 'date', direction: 'desc' as const}}}
       />
 
       {entryToDelete && (
