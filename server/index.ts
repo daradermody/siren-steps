@@ -63,6 +63,9 @@ async function buildClient() {
   const result = await build({
     entrypoints: ['./client/index.tsx', './client/serviceWorker.ts'],
     outdir: './build/static',
+    naming: {
+      asset: '[name].[ext]',
+    },
     minify: Bun.env.NODE_ENV === 'production',
   });
   if (!result.success) {

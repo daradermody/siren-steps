@@ -1,8 +1,6 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useUser } from './UserProvider.tsx'
 import { EuiButton, EuiPageHeader, EuiPageHeaderSection, EuiSpacer, EuiText, EuiTitle, useIsWithinMaxBreakpoint } from '@elastic/eui'
-// @ts-ignore
-import logo from './assets/logo.png'
 import React from 'react'
 
 interface PageHeaderProps {
@@ -10,8 +8,7 @@ interface PageHeaderProps {
 }
 
 export default function PageHeader({navigation}: PageHeaderProps) {
-  const navigate = useNavigate()
-  const user = useUser()
+  const {user, fetchingUser} = useUser()
   const isNarrow = useIsWithinMaxBreakpoint('xs')
 
   return (
@@ -19,14 +16,16 @@ export default function PageHeader({navigation}: PageHeaderProps) {
       <EuiPageHeaderSection style={{width: '100%'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: isNarrow ? 'column' : 'row'}}>
           <Link to="/" style={{display: 'flex', gap: '10px', alignItems: 'center', margin: '26px 0', width: 'fit-content'}}>
-            <img src={logo} alt="logo" style={{height: '60px', width: '60px'}}/>
+            <img src="/public/logo60.png" alt="logo" style={{height: '60px', width: '60px', backgroundColor: '#00e7d6', borderRadius: '50%'}}/>
             <EuiTitle size="l"><h1>Siren Steps</h1></EuiTitle>
           </Link>
-          <div style={{display: 'flex', gap: '16px', width: isNarrow ? '100%' : 'unset', alignItems: 'baseline'}}>
-            {user?.isAdmin && navigation?.includes('admin') && <AdminButton/>}
-            {!!user && navigation?.includes('submitSteps') && <SubmitStepsButton/>}
-            {!user && navigation?.includes('takePart') && <TakePartButton/>}
-          </div>
+          {!fetchingUser && (
+            <div style={{display: 'flex', gap: '16px', width: isNarrow ? '100%' : 'unset', alignItems: 'baseline'}}>
+              {user?.isAdmin && navigation?.includes('admin') && <AdminButton/>}
+              {!!user && navigation?.includes('submitSteps') && <SubmitStepsButton/>}
+              {!user && navigation?.includes('takePart') && <TakePartButton/>}
+            </div>
+          )}
         </div>
       </EuiPageHeaderSection>
     </EuiPageHeader>
@@ -44,7 +43,7 @@ function AdminButton() {
 
 function SubmitStepsButton() {
   const navigate = useNavigate()
-  const user = useUser()
+  const {user} = useUser()
   const isNarrow = useIsWithinMaxBreakpoint('xs')
 
   if (!user) return null

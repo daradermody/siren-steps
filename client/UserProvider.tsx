@@ -2,11 +2,16 @@ import { createContext, type ReactNode, useContext, useEffect, useState } from '
 import client from './api/client.ts'
 import type { User } from '../server/user_data.ts'
 
-const UserContext = createContext<Pick<User, 'name' | 'team' | 'isAdmin'> | undefined>(undefined)
+interface UserContextValue {
+  user?: Pick<User, 'name' | 'team' | 'isAdmin'>;
+  fetchingUser: boolean
+}
+
+const UserContext = createContext<UserContextValue>({fetchingUser: true})
 
 export default function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>()
-  const [loading, setLoading] = useState(true)
+  const [fetchingUser, setFetchingUser] = useState(true)
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token') || localStorage.getItem('token')
@@ -24,18 +29,14 @@ export default function UserProvider({ children }: { children: ReactNode }) {
           console.error(e)
           localStorage.removeItem('token')
         })
-        .finally(() => setLoading(false))
+        .finally(() => setFetchingUser(false))
     } else {
-      setLoading(false)
+      setFetchingUser(false)
     }
   }, [])
 
-  if (loading) {
-    return null
-  }
-
   return (
-    <UserContext.Provider value={user}>
+    <UserContext.Provider value={{user, fetchingUser}}>
       {children}
     </UserContext.Provider>
   )

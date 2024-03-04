@@ -1,9 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-// @ts-ignore
-import css from './index.css'
-// @ts-ignore
-import elasticCss from '@elastic/eui/dist/eui_theme_light.css'
 import { EuiButton, EuiPage, EuiPageBody, EuiProvider, EuiText } from '@elastic/eui'
 import './icons'
 import Leaderboard from './Leaderboard.tsx'
@@ -31,8 +27,6 @@ root.render(
   <React.StrictMode>
     <UserProvider>
       <EuiProvider colorMode="light">
-        <link rel="stylesheet" href={css}/>
-        <link rel="stylesheet" href={elasticCss}/>
         <EuiPage restrictWidth paddingSize="m">
           <EuiPageBody>
             <RouterProvider router={router}/>

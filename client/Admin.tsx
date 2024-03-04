@@ -21,16 +21,15 @@ import { useAddUser, useUsers, useDeleteUser, useEditUser, useSetAdmin } from '.
 import PageHeader from './PageHeader.tsx'
 
 export function Admin() {
-  const user = useUser()
+  const {user, fetchingUser} = useUser()
   const {users, loading, error, refetch} = useUsers<UserWithToken[]>()
   const {setAdmin} = useSetAdmin()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
   const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
 
-  if (!user) {
-    return <Navigate to="/" replace={true}/>
-  }
+  if (fetchingUser) return null
+  if (!user) return <Navigate to="/" replace/>
 
   const baseLink = `${window.location.protocol}//${window.location.host}`;
 
