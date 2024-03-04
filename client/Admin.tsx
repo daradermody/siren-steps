@@ -4,6 +4,7 @@ import {
   EuiButton,
   EuiFieldText,
   EuiFormRow,
+  EuiIcon,
   EuiInMemoryTable,
   EuiLink,
   EuiModal,
@@ -16,12 +17,13 @@ import {
 } from '@elastic/eui'
 import React, { useEffect, useState } from 'react'
 import type { User, UserWithToken } from '../server/user_data.ts'
-import { useAddUser, useUsers, useDeleteUser, useEditUser } from './api/api_hooks.ts'
+import { useAddUser, useUsers, useDeleteUser, useEditUser, useSetAdmin } from './api/api_hooks.ts'
 import PageHeader from './PageHeader.tsx'
 
 export function Admin() {
   const user = useUser()
   const {users, loading, error, refetch} = useUsers<UserWithToken[]>()
+  const {setAdmin} = useSetAdmin()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
   const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
@@ -43,10 +45,12 @@ export function Admin() {
         error={error?.message}
         items={users?.sort((a, b) => b.name < a.name ? 1 : -1) || []}
         hasActions
+        tableLayout="auto"
         columns={[
           {field: 'name', name: 'Name', sortable: true},
           {field: 'team', name: 'Team', sortable: true},
           {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
+          {field: 'isAdmin', name: 'Is admin', render: (isAdmin: boolean) => isAdmin ? <EuiIcon type="checkInCircleFilled"/> : null},
           {actions: [
             {
               name: 'Impersonate',
@@ -63,6 +67,16 @@ export function Admin() {
               icon: 'pencil',
               type: 'icon',
               onClick: setUserToEdit
+            },
+            {
+              name: user => user.isAdmin ? 'Demote admin' : 'Make admin',
+              description: user.isAdmin ? 'Demote admin' : 'Make admin',
+              icon: 'key',
+              type: 'icon',
+              onClick: async (user) => {
+                await setAdmin(user.name, !user.isAdmin)
+                await refetch()
+              }
             },
             {
               name: 'Delete',

@@ -88,6 +88,12 @@ export default class UserData {
     await this.updateUser(user)
   }
 
+  static async setAdmin(name: string, isAdmin: boolean): Promise<void> {
+    const user = await this.getUserByName(name)
+    user.isAdmin = isAdmin
+    await this.updateUser(user)
+  }
+
   static async deleteUser(name: string): Promise<void> {
     await this.getUserByName(name)
     this.users = this.users.filter(user => user.name !== name)

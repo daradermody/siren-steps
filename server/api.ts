@@ -37,6 +37,13 @@ const ADMIN_ROUTES: Record<string, RequestHandler> = {
       return new Response('name is required', {status: 400})
     }
     await UserData.deleteUser(name)
+  },
+  'POST /setAdmin': async (req) => {
+    const {name, isAdmin} = await req.json()
+    if (!name || isAdmin === undefined) {
+      return new Response('name and isAdmin are required', {status: 400})
+    }
+    await UserData.setAdmin(name, isAdmin)
   }
 }
 

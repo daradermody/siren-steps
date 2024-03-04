@@ -32,3 +32,10 @@ export function useDeleteUser() {
   return {deleteUser: fetch, loading, error}
 }
 
+export function useSetAdmin() {
+  const {fetch, loading, error} = useDelayedQuery(
+    (name: string, isAdmin: boolean) => client.post('/setAdmin', {name, isAdmin})
+  )
+  return {setAdmin: fetch, loading, error}
+}
+

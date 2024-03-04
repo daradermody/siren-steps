@@ -11,6 +11,8 @@ import { icon as EuiIconTrash } from '@elastic/eui/es/components/icon/assets/tra
 import { icon as EuiIconPencil } from '@elastic/eui/es/components/icon/assets/pencil';
 import { icon as EuiIconPlay } from '@elastic/eui/es/components/icon/assets/play';
 import { icon as EuiIconBoxesHorizontal } from '@elastic/eui/es/components/icon/assets/boxes_horizontal';
+import { icon as EuiIconKey } from '@elastic/eui/es/components/icon/assets/key';
+import { icon as EuiIconCheckInCircleFilled } from '@elastic/eui/es/components/icon/assets/checkInCircleFilled';
 
 // One or more icons are passed in as an object of iconKey (string): IconComponent
 appendIconComponentCache({
@@ -25,4 +27,6 @@ appendIconComponentCache({
   pencil: EuiIconPencil,
   play: EuiIconPlay,
   boxesHorizontal: EuiIconBoxesHorizontal,
+  key: EuiIconKey,
+  checkInCircleFilled: EuiIconCheckInCircleFilled,
 });
