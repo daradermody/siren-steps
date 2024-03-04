@@ -70,7 +70,7 @@ export function Admin() {
             },
             {
               name: user => user.isAdmin ? 'Demote admin' : 'Make admin',
-              description: user.isAdmin ? 'Demote admin' : 'Make admin',
+              description: user => user.isAdmin ? 'Demote admin' : 'Make admin',
               icon: 'key',
               type: 'icon',
               onClick: async (user) => {
