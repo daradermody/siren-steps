@@ -1,6 +1,7 @@
 import axios, { Axios } from 'axios'
+import getTokenInfo from '../getTokenInfo.ts'
 
-export default new Axios({
+const client = new Axios({
   baseURL: '/api',
   validateStatus: status => status >= 200 && status < 300,
   responseType: 'json',
@@ -17,3 +18,13 @@ export default new Axios({
     'Content-Type': 'application/json'
   }
 })
+
+const {token} = getTokenInfo()
+if (token) {
+  client.interceptors.request.use(config => {
+    config.headers.token = token;
+    return config;
+  });
+}
+
+export default client

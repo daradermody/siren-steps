@@ -55,7 +55,7 @@ export function Admin() {
               name: 'Impersonate',
               isPrimary: true,
               description: 'Login as this user',
-              href: user => `${baseLink}?token=${user.token}`,
+              href: user => `${baseLink}?sessionToken=${user.token}`,
               target: '_blank',
               icon: 'play',
               type: 'icon'
