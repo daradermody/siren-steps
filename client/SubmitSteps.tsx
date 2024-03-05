@@ -53,7 +53,7 @@ export default function SubmitSteps() {
 
   return (
     <>
-      <PageHeader navigation={['admin']}/>
+      <PageHeader/>
       <StepSubmissionForm
         loading={loading || loadingSubmit}
         onSubmit={async steps => {

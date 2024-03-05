@@ -35,7 +35,7 @@ export function Admin() {
 
   return (
     <div>
-      <PageHeader navigation={['submitSteps']}/>
+      <PageHeader/>
 
       <EuiText><h2>Users</h2></EuiText>
       <EuiInMemoryTable

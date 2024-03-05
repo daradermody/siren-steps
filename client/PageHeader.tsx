@@ -54,7 +54,8 @@ function SubmitStepsButton() {
       alignItems: 'center',
       flexDirection: 'column',
       textWrap: 'nowrap',
-      paddingTop: isNarrow ? 0 : '32px'
+      paddingTop: isNarrow ? 0 : '32px',
+      inlineSize: '100%'
     }}>
       <EuiButton onClick={() => navigate('/submitSteps')} fullWidth fill>Submit steps</EuiButton>
       <EuiSpacer size="s"/>
