@@ -13,6 +13,7 @@ import { icon as EuiIconPlay } from '@elastic/eui/es/components/icon/assets/play
 import { icon as EuiIconBoxesHorizontal } from '@elastic/eui/es/components/icon/assets/boxes_horizontal';
 import { icon as EuiIconKey } from '@elastic/eui/es/components/icon/assets/key';
 import { icon as EuiIconCheckInCircleFilled } from '@elastic/eui/es/components/icon/assets/checkInCircleFilled';
+import { icon as EuiIconEmpty } from '@elastic/eui/es/components/icon/assets/empty';
 
 // One or more icons are passed in as an object of iconKey (string): IconComponent
 appendIconComponentCache({
@@ -29,4 +30,5 @@ appendIconComponentCache({
   boxesHorizontal: EuiIconBoxesHorizontal,
   key: EuiIconKey,
   checkInCircleFilled: EuiIconCheckInCircleFilled,
+  empty: EuiIconEmpty,
 });
