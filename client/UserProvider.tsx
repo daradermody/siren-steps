@@ -1,17 +1,17 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 import client from './api/client.ts'
-import type { User } from '../server/user_data.ts'
+import type { User, UserWithToken } from '../server/user_data.ts'
 import getTokenInfo from './getTokenInfo.ts'
 
 interface UserContextValue {
-  user?: Pick<User, 'name' | 'team' | 'isAdmin'>;
+  user?: Pick<UserWithToken, 'name' | 'team' | 'isAdmin' | 'token'>;
   fetchingUser: boolean
 }
 
 const UserContext = createContext<UserContextValue>({fetchingUser: true})
 
 export default function UserProvider({children}: { children: ReactNode }) {
-  const [user, setUser] = useState<User>()
+  const [user, setUser] = useState<UserWithToken>()
   const [fetchingUser, setFetchingUser] = useState(true)
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function UserProvider({children}: { children: ReactNode }) {
     if (token) {
       client.get<User>(`/me`)
         .then(response => {
-          setUser(response.data)
+          setUser({ ...response.data, token })
           const storage = rememberUser ? localStorage : sessionStorage
           storage.setItem('token', token)
         })

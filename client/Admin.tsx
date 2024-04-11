@@ -27,11 +27,10 @@ export function Admin() {
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
   const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
+  const baseLink = `${window.location.protocol}//${window.location.host}`;
 
   if (fetchingUser) return null
   if (!user) return <Navigate to="/" replace/>
-
-  const baseLink = `${window.location.protocol}//${window.location.host}`;
 
   return (
     <div>
@@ -90,7 +89,10 @@ export function Admin() {
         sorting={{sort: {field: 'name', direction: 'asc' as const}}}
       />
       <EuiSpacer size="xl"/>
-      <EuiButton onClick={() => setShowAddUserModal(true)}>Add user</EuiButton>
+      <div style={{ display: 'flex', gap: '16px'}}>
+        <EuiButton onClick={() => setShowAddUserModal(true)}>Add user</EuiButton>
+        <EuiButton onClick={() => window.open(`/api/dataFile?token=${user?.token}`)}>Download data</EuiButton>
+      </div>
 
       {showAddUserModal && <AddUserModal onClose={() => setShowAddUserModal(false)} onAdd={refetch}/>}
       {userToEdit && (

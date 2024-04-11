@@ -44,7 +44,8 @@ const ADMIN_ROUTES: Record<string, RequestHandler> = {
       return new Response('name and isAdmin are required', {status: 400})
     }
     await UserData.setAdmin(name, isAdmin)
-  }
+  },
+  'GET /dataFile': () => new Response(UserData.file, { headers: { 'Content-Disposition': 'attachment; filename=users.json' } })
 }
 
 export default async function handleApiRequest(req: Request) {

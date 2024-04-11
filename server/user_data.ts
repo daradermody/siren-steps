@@ -5,7 +5,7 @@ if (!adminToken) {
 }
 
 export default class UserData {
-  private static file = Bun.file(`${dataDir}/users.json`)
+  public static file = Bun.file(`${dataDir}/users.json`)
   private static users: StoredUser[]
 
   static async getByToken(token: string): Promise<User> {

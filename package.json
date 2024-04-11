@@ -8,7 +8,8 @@
     "start": "bun run --hot ./server/index.ts",
     "docker:start": "bun docker:build && docker container rm siren-steps; docker run --name=siren-steps --env-file .env --mount source=siren-steps-volume,target=/data -p 3000:3000 daradermody/siren-steps",
     "docker:build": "docker build --pull -t daradermody/siren-steps .",
-    "docker:publish": "./scripts/publish_docker.sh"
+    "docker:publish": "./scripts/publish_docker.sh",
+    "getCurrentTotal": "curl -s https://steps.siren.io/api/teamStats | jq '[.[].steps] | add'"
   },
   "dependencies": {
     "@elastic/eui": "^93.1.1",
