@@ -1,3 +1,5 @@
+import type { BunFile } from "bun"
+
 const dataDir = Bun.env.DATA_DIR || `${import.meta.dir}/data`
 const adminToken = Bun.env.ADMIN_TOKEN
 if (!adminToken) {
@@ -5,8 +7,30 @@ if (!adminToken) {
 }
 
 export default class UserData {
-  public static file = Bun.file(`${dataDir}/users.json`)
+  public static file: BunFile
   private static users: StoredUser[]
+  static {
+    void this.setupData()
+  }
+
+  static async setupData() {
+    this.file = Bun.file(`${dataDir}/users.json`)
+    if (!await this.file.exists()) {
+      try {
+        await Bun.write(this.file, '[]')
+      } catch (e) {
+        console.error('Failed to setup users file', e)
+        process.exit(1)
+      }
+    }
+    this.file = Bun.file(`${dataDir}/users.json`)
+
+    const users: Omit<StoredUser, 'totalSteps'>[] = await this.file.json()
+    this.users = users.map(user => ({
+      ...user,
+      totalSteps: sum(user.steps.map(stepSub => stepSub.steps))
+    }))
+  }
 
   static async getByToken(token: string): Promise<User> {
     const users = await this.getAllWithToken()
@@ -23,18 +47,6 @@ export default class UserData {
   }
 
   static async getAllWithToken(): Promise<StoredUser[]> {
-    if (!this.users) {
-      if (await this.file.exists()) {
-        const users: Omit<StoredUser, 'totalSteps'>[] = await this.file.json()
-        this.users = users.map(user => ({
-          ...user,
-          totalSteps: sum(user.steps.map(stepSub => stepSub.steps))
-        }))
-      } else {
-        this.users = []
-        await this.saveUsers()
-      }
-    }
     return this.users
   }
 
