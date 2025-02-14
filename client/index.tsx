@@ -27,7 +27,7 @@ root.render(
   <React.StrictMode>
     <UserProvider>
       <EuiProvider colorMode="light">
-        <EuiPage restrictWidth paddingSize="m">
+        <EuiPage restrictWidth paddingSize="m" style={{minHeight: '100%'}}>
           <EuiPageBody>
             <RouterProvider router={router}/>
           </EuiPageBody>

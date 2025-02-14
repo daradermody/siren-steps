@@ -1,9 +1,10 @@
-import { useUser } from './UserProvider.tsx'
-import { Navigate } from 'react-router-dom'
+import {useUser} from './UserProvider.tsx'
+import {Navigate} from 'react-router-dom'
 import {
   EuiButton,
   EuiFieldText,
   EuiFormRow,
+  EuiHorizontalRule,
   EuiIcon,
   EuiInMemoryTable,
   EuiLink,
@@ -15,9 +16,9 @@ import {
   EuiSpacer,
   EuiText
 } from '@elastic/eui'
-import React, { useEffect, useState } from 'react'
-import type { User, UserWithToken } from '../server/user_data.ts'
-import { useAddUser, useUsers, useDeleteUser, useEditUser, useSetAdmin } from './api/api_hooks.ts'
+import React, {useEffect, useState} from 'react'
+import type {User, UserWithToken} from '../server/user_data.ts'
+import {useAddUser, useUsers, useDeleteUser, useEditUser, useSetAdmin} from './api/api_hooks.ts'
 import PageHeader from './PageHeader.tsx'
 
 export function Admin() {
@@ -27,71 +28,86 @@ export function Admin() {
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined)
   const [userToDelete, setUserToDelete] = useState<User | undefined>(undefined)
-  const baseLink = `${window.location.protocol}//${window.location.host}`;
+  const baseLink = `${window.location.protocol}//${window.location.host}`
 
   if (fetchingUser) return null
   if (!user) return <Navigate to="/" replace/>
 
   return (
-    <div>
-      <PageHeader/>
+    <div style={{minHeight: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
+      <div>
+        <PageHeader/>
 
-      <EuiText><h2>Users</h2></EuiText>
-      <EuiInMemoryTable
-        itemId="name"
-        loading={loading}
-        error={error?.message}
-        items={users?.sort((a, b) => b.name < a.name ? 1 : -1) || []}
-        hasActions
-        tableLayout="auto"
-        columns={[
-          {field: 'name', name: 'Name', sortable: true},
-          {field: 'team', name: 'Team', sortable: true},
-          {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
-          {field: 'isAdmin', name: 'Is admin', render: (isAdmin: boolean) => isAdmin ? <EuiIcon type="checkInCircleFilled"/> : null},
-          {actions: [
+        <EuiText><h2>Users</h2></EuiText>
+        <EuiInMemoryTable
+          itemId="name"
+          loading={loading}
+          error={error?.message}
+          items={users?.sort((a, b) => b.name < a.name ? 1 : -1) || []}
+          hasActions
+          tableLayout="auto"
+          columns={[
+            {field: 'name', name: 'Name', sortable: true},
+            {field: 'team', name: 'Team', sortable: true},
+            {field: 'totalSteps', name: 'Steps', sortable: true, render: (steps: number) => steps.toLocaleString()},
             {
-              name: 'Impersonate',
-              isPrimary: true,
-              description: 'Login as this user',
-              href: user => `${baseLink}?sessionToken=${user.token}`,
-              target: '_blank',
-              icon: 'play',
-              type: 'icon'
+              field: 'isAdmin',
+              name: 'Is admin',
+              render: (isAdmin: boolean) => isAdmin ? <EuiIcon type="checkInCircleFilled"/> : null
             },
             {
-              name: 'Edit',
-              description: 'Edit this user',
-              icon: 'pencil',
-              type: 'icon',
-              onClick: setUserToEdit
+              actions: [
+                {
+                  name: 'Impersonate',
+                  isPrimary: true,
+                  description: 'Login as this user',
+                  href: user => `${baseLink}?sessionToken=${user.token}`,
+                  target: '_blank',
+                  icon: 'play',
+                  type: 'icon'
+                },
+                {
+                  name: 'Edit',
+                  description: 'Edit this user',
+                  icon: 'pencil',
+                  type: 'icon',
+                  onClick: setUserToEdit
+                },
+                {
+                  name: user => user.isAdmin ? 'Demote admin' : 'Make admin',
+                  description: user => user.isAdmin ? 'Demote admin' : 'Make admin',
+                  icon: 'key',
+                  type: 'icon',
+                  onClick: async (user) => {
+                    await setAdmin(user.name, !user.isAdmin)
+                    await refetch()
+                  }
+                },
+                {
+                  name: 'Delete',
+                  description: 'Delete this user',
+                  icon: 'trash',
+                  type: 'icon',
+                  color: 'danger',
+                  onClick: setUserToDelete
+                }
+              ]
             },
-            {
-              name: user => user.isAdmin ? 'Demote admin' : 'Make admin',
-              description: user => user.isAdmin ? 'Demote admin' : 'Make admin',
-              icon: 'key',
-              type: 'icon',
-              onClick: async (user) => {
-                await setAdmin(user.name, !user.isAdmin)
-                await refetch()
-              }
-            },
-            {
-              name: 'Delete',
-              description: 'Delete this user',
-              icon: 'trash',
-              type: 'icon',
-              color: 'danger',
-              onClick: setUserToDelete
-            }
-          ]},
-        ]}
-        sorting={{sort: {field: 'name', direction: 'asc' as const}}}
-      />
-      <EuiSpacer size="xl"/>
-      <div style={{ display: 'flex', gap: '16px'}}>
-        <EuiButton onClick={() => setShowAddUserModal(true)}>Add user</EuiButton>
-        <EuiButton onClick={() => window.open(`/api/dataFile?token=${user?.token}`)}>Download data</EuiButton>
+          ]}
+          sorting={{sort: {field: 'name', direction: 'asc' as const}}}
+        />
+        <EuiSpacer size="xl"/>
+        <div style={{display: 'flex', gap: '16px'}}>
+          <EuiButton onClick={() => setShowAddUserModal(true)}>Add user</EuiButton>
+          <EuiButton onClick={() => window.open(`/api/dataFile?token=${user?.token}`)}>Download data</EuiButton>
+        </div>
+      </div>
+
+      <div style={{margin: '40px 0 10px'}}>
+        <EuiHorizontalRule/>
+        <div style={{textAlign: 'center'}}>
+          <EuiText color="subdued" size="xs">Version: {VERSION}</EuiText>
+        </div>
       </div>
 
       {showAddUserModal && <AddUserModal onClose={() => setShowAddUserModal(false)} onAdd={refetch}/>}
@@ -196,7 +212,8 @@ function EditUserModal({user, onClose, onEdit}: { user: User; onClose: () => voi
 
       <EuiModalFooter>
         <EuiButton disabled={loading} onClick={onClose}>Cancel</EuiButton>
-        <EuiButton disabled={loading || !newName || !newTeam || !detailsChanged} onClick={handleEditUser} fill>Save</EuiButton>
+        <EuiButton disabled={loading || !newName || !newTeam || !detailsChanged} onClick={handleEditUser}
+                   fill>Save</EuiButton>
       </EuiModalFooter>
     </EuiModal>
   )
@@ -232,4 +249,8 @@ function DeleteUserModal({user, onClose, onDelete}: { user: User; onClose: () =>
       </EuiModalFooter>
     </EuiModal>
   )
+}
+
+declare global {
+  const VERSION: string // Defined by frontend build
 }

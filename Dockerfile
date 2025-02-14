@@ -1,4 +1,5 @@
 FROM oven/bun:1 AS base
+ARG VERSION
 WORKDIR /usr/src/app
 
 FROM base AS install
@@ -15,9 +16,9 @@ USER bun
 COPY --chown=bun --from=install /temp/prod/node_modules node_modules
 COPY --chown=bun . .
 
-
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV DATA_DIR=/data
+ENV VERSION=${VERSION}
 EXPOSE 3000/tcp
 ENTRYPOINT [ "bun", "server/index.ts" ]

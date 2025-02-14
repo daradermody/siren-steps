@@ -59,6 +59,8 @@ async function buildClient() {
   await fixEuiSideEffects()
 
   await $`mkdir -p build`
+  const version = Bun.env.VERSION || await $`git rev-parse --short HEAD`.text()
+
   const result = await build({
     entrypoints: ['./client/index.tsx', './client/serviceWorker.ts'],
     outdir: './build/static',
@@ -66,6 +68,9 @@ async function buildClient() {
       asset: '[name].[ext]',
     },
     minify: Bun.env.NODE_ENV === 'production',
+    define: {
+      VERSION: `'${version.trim()}'`
+    }
   })
   if (!result.success) {
     console.error('There were errors during the client build:')
