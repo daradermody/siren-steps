@@ -1,6 +1,6 @@
-import { $, build, type ServeOptions } from 'bun'
+import {$, build, type ServeOptions} from 'bun'
 import handleApiRequest from './api.ts'
-import { watch } from "fs";
+import {watch} from "fs"
 
 const port = Bun.env.PORT || 3000
 
@@ -10,12 +10,10 @@ async function main() {
   console.log(`Server available at http://localhost:${port}/`)
 
   if (Bun.env.NODE_ENV !== 'production') {
-    const watcher = watch('client', {recursive: true}, debounce(buildClient, 20));
-    process.on("SIGINT", () => {
-      watcher.close();
-      process.exit(0);
-    });
+    const watcher = watch('client', {recursive: true}, debounce(buildClient, 20))
+    process.on("SIGINT", () => watcher.close())
   }
+  process.on("SIGINT", () => process.exit())
 }
 
 function startServer() {
@@ -34,7 +32,7 @@ function startServer() {
         console.error(e)
       }
     }
-  } as ServeOptions);
+  } as ServeOptions)
 }
 
 async function handleUiRoute(path: string) {
@@ -46,11 +44,12 @@ async function handleUiRoute(path: string) {
     return serveFile(`build/public/index.html`)
   }
 }
+
 async function serveFile(path: string, compress = true) {
   if (compress) {
     const file = Bun.file(path)
     const content = Bun.gzipSync(await file.arrayBuffer())
-    return new Response(content, { headers: { 'Content-Type': file.type, 'Content-Encoding': 'gzip' } })
+    return new Response(content, {headers: {'Content-Type': file.type, 'Content-Encoding': 'gzip'}})
   } else {
     return new Response(Bun.file(path))
   }
@@ -67,7 +66,7 @@ async function buildClient() {
       asset: '[name].[ext]',
     },
     minify: Bun.env.NODE_ENV === 'production',
-  });
+  })
   if (!result.success) {
     console.error('There were errors during the client build:')
     for (const log of result.logs) {
